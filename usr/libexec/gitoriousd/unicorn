@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+
+# Wrapper for Unicorn processes
+# By using this baby, we can retain the same PID across Unicorn reloads
+
+require "pathname"
+def pidfile_path
+  libexec_dir = Pathname(__FILE__).dirname
+  application_name = libexec_dir.basename.to_s
+  script_name = Pathname(__FILE__).basename
+  slash_root = libexec_dir + "../../../"
+  run_dir = slash_root + "var/run/#{application_name}"
+  "#{run_dir}/#{script_name}.pid"
+end
+
+def write_pidfile(pid)
+  File.open(pidfile_path,"w") {|f| f.write(pid.to_s)}
+end
+
+def daemonize_app
+  if RUBY_VERSION < "1.9"
+    exit if fork
+    Process.setsid
+    exit if fork
+    Dir.chdir "/"
+    STDIN.reopen "/dev/null"
+    STDOUT.reopen "/dev/null", "a"
+    STDERR.reopen "/dev/null", "a"
+    write_pidfile(Process.pid)
+    $0 = "unicorn-wrapper"
+    yield
+  else
+    Process.daemon
+  end
+end
+
+
+def shutdown!
+  if File.exist?(pidfile_path)
+    File.unlink pidfile_path
+  end
+  exit 0
+end
+
+daemonize_app do
+  Signal.trap(:QUIT) do
+    shutdown!
+  end
+  loop do
+    sleep 1
+  end
+end
+
+def reload
+end

@@ -9,10 +9,12 @@ PREFIX?=/
 DOC_DIR=$(PREFIX)/share/doc/$(NAME)
 DOC_FILES=readme.org
 
+RUN_DIR=$(PREFIX)/var/run/$(NAME)
 install:
 	for dir in $(INSTALL_DIRS); do mkdir -p $(PREFIX)/$$dir; done
 	for file in $(INSTALL_FILES); do install $$file $(PREFIX)/$$file; done
 	mkdir -p $(DOC_DIR)
+	mkdir -p $(RUN_DIR)
 	cp -r $(DOC_FILES) $(DOC_DIR)/
 
 uninstall:
