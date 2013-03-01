@@ -1,0 +1,69 @@
+#!/bin/sh
+progname="gitoriousd"
+prefix="/tmp/gitoriousd"
+start(){
+    for app in $(find "$prefix/usr/libexec/$progname" -type f -executable)
+    do
+	$app
+    done
+}
+
+_checkpid() {
+    local name=$1
+    local pidfile="$prefix/var/run/$progname/$name.pid"
+    if [ -f $pidfile ]; then
+	pid=$(cat $pidfile 2>/dev/null)
+	ps -p $pid >/dev/null 2>&1
+	exitstatus=$?
+	if [ $exitstatus -eq 0 ]; then
+	    /bin/echo "$name is running"
+	else
+	    /bin/echo "$name has a PID file, but is down"
+	fi
+    else
+	/bin/echo "$name is down"
+    fi
+}
+
+status(){
+    for path in $(find "$prefix/usr/libexec/$progname" -type f -executable)
+    do
+	local name=$(basename $path)
+	_checkpid $name
+    done
+}
+
+stop(){
+    for app in $(find "$prefix/usr/libexec/$progname" -type f -executable)
+    do
+	local name=$(basename $app)
+	local pidfile="$prefix/var/run/$progname/$name.pid"
+	if [ -f $pidfile ]; then
+	    local pid=$(cat $pidfile 2>/dev/null)
+	    kill -QUIT $pid
+	fi
+    done
+}
+
+restart(){
+    stop
+    start
+}
+
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status
+	;;
+    restart)
+	stop
+	start
+	;;
+    *)
+	/bin/echo "Usage: $0 {start,stop,restart,status}"
+esac

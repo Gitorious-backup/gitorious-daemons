@@ -42,14 +42,18 @@ def shutdown!
   exit 0
 end
 
+
+def reload
+  File.open("/tmp/unicorn.log","a") {|f| f.puts "Reloading"}
+end
+
+
 daemonize_app do
   Signal.trap(:QUIT) do
     shutdown!
   end
+  Signal.trap(:HUP) { reload }
   loop do
     sleep 1
   end
-end
-
-def reload
 end
