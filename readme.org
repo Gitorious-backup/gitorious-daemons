@@ -20,7 +20,7 @@ gitorious reload: Sends SIGHUP to all processes, which will cause them to reload
 *** TODO git-proxy
 *** TODO unicorn
 *** TODO searchd
-*** TODO resque-worker
+*** DONE resque-worker
 ** Main scenarios
 *** System startup: start all associated daemons
     - [ ] Start all tasks

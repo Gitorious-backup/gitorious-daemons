@@ -16,9 +16,10 @@ else
 fi
 
 start(){
-    for app in $(find "$prefix/usr/libexec/$progname" -type f -executable)
+    for app in $(find "$prefix/usr/libexec/$progname" -type f -not -name "*.rb" -executable)
     do
-	$app
+	local name=$(basename $app)
+	_checkpid $name && echo "Not starting $name" || $app
     done
 }
 
@@ -40,7 +41,7 @@ _checkpid() {
 }
 
 status(){
-    for path in $(find "$prefix/usr/libexec/$progname" -type f -executable)
+    for path in $(find "$prefix/usr/libexec/$progname" -not -name "*.rb" -type f -executable)
     do
 	local name=$(basename $path)
 	_checkpid $name && /bin/echo "$name is up" || /bin/echo "$name is down"
@@ -49,13 +50,13 @@ status(){
 
 _signal_all(){
     local signal=$1
-    for app in $(find "$prefix/usr/libexec/$progname" -type f -executable)
+    for app in $(find "$prefix/usr/libexec/$progname" -type f -not -name "*.rb" -executable)
     do
 	local name=$(basename $app)
 	local pidfile="$prefix/var/run/$progname/$name.pid"
 	if [ -f $pidfile ]; then
 	    local pid=$(cat $pidfile 2>/dev/null)
-	    kill -$signal $pid
+	    kill -$signal $pid 2>/dev/null
 	fi
     done
 }

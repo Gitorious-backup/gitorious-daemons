@@ -1,76 +1,44 @@
 #!/usr/bin/env ruby
+require File.expand_path(File.dirname(__FILE__) + "/daemon")
 
-require "pathname"
-def pidfile_path
-  libexec_dir = Pathname(__FILE__).dirname
-  application_name = libexec_dir.basename.to_s
-  script_name = Pathname(__FILE__).basename
-  slash_root = libexec_dir + "../../../"
-  run_dir = slash_root + "var/run/#{application_name}"
-  "#{run_dir}/#{script_name}.pid"
-end
+class ResqueDaemon
+  include Gitoriousd::Daemon
 
-def write_pidfile(pid)
-  File.open(pidfile_path,"w") {|f| f.write(pid.to_s)}
-end
-
-def daemonize_app
-  if RUBY_VERSION < "1.9"
-    exit if fork
-    Process.setsid
-    exit if fork
-    Dir.chdir "/"
-    STDIN.reopen "/dev/null"
-    STDOUT.reopen "/dev/null", "a"
-    STDERR.reopen "/dev/null", "a"
-  else
-    Process.daemon
+  def initialize(name)
+    @name = name
   end
-  write_pidfile(Process.pid)
-  yield
-end
 
-
-def shutdown!
-  if File.exist?(pidfile_path)
-    File.unlink pidfile_path
+  def run_resque
+    pid = fork do
+      exec "#{ENV['GITORIOUS_HOME']}/bin/rake resque:work QUEUE=*"
+    end
+    return pid
   end
-  exit 0
-end
 
-def reload
-  write_to_log_file "Reloading"
-end
-
-def write_to_log_file(message)
-  File.open("/tmp/resque.log","a") {|f| f.puts message}
-end
-
-def run_resque
-  pid = fork do
-    exec "#{ENV['GITORIOUS_HOME']}/bin/rake resque:work QUEUE=*"
+  def run!
+    daemonize_app do
+      @resque_pid = run_resque
+      write_to_log_file "Resque running with pid #{@resque_pid}, controlled by #{Process.pid}"
+      Signal.trap(:QUIT) do
+        Process.kill(:QUIT, @resque_pid)
+        pid, status = Process.waitpid2(@resque_pid)
+        write_to_log_file "Resque with PID #{@resque_pid} killed, status was #{status.exitstatus}"
+        exit status.exitstatus
+      end
+      Signal.trap(:HUP) {
+        write_to_log_file "Restarting Resque with PID #{@resque_pid}"
+        Process.kill(:QUIT, @resque_pid)
+        Process.waitpid(@resque_pid)
+        write_to_log_file "Old Resque worker dead, will re-spawn"
+        @resque_pid = run_resque
+        write_to_log_file "Resque respawned, running with pid #{@resque_pid}"
+      }
+      loop {
+        sleep 1
+      }
+    end
   end
-  return pid
 end
 
-daemonize_app do
-  ResquePid = run_resque
-  write_to_log_file "Resque running with pid #{ResquePid}, controlled by #{Process.pid}"
-  Signal.trap(:QUIT) do
-    Process.kill(:QUIT, ResquePid)
-    pid, status = Process.waitpid2(ResquePid)
-    write_to_log_file "Resque with PID #{ResquePid} killed, status was #{status.exitstatus}"
-    exit status.exitstatus
-  end
-  Signal.trap(:HUP) {
-    write_to_log_file "Restarting Resque with PID #{ResquePid}"
-    Process.kill(:QUIT, ResquePid)
-    Process.waitpid(ResquePid)
-    write_to_log_file "Old Resque worker dead, will re-spawn"
-    ResquePid = run_resque
-    write_to_log_file "Resque respawned, running with pid #{ResquePid}"
-  }
-  loop {
-    sleep 1
-  }
-end
+daemon = ResqueDaemon.new("resque")
+daemon.run!
