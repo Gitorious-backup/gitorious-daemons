@@ -1,6 +1,20 @@
 #!/bin/sh
 progname="gitoriousd"
+# Dynamically find prefix
 prefix="/tmp/gitoriousd"
+# Read /etc/gitorious.conf, expose env vars
+current_dir=$(dirname $0)
+gitorious_conf=$current_dir/../../etc/gitorious.conf
+
+# Look for $PREFIX/gitorious.conf, source if present
+if [ -f $gitorious_conf ]; then
+    . $gitorious_conf
+    export GITORIOUS_HOME
+else
+    echo "gitorious.conf not found, exiting"
+    exit 1
+fi
+
 start(){
     for app in $(find "$prefix/usr/libexec/$progname" -type f -executable)
     do

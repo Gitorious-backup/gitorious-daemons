@@ -15,6 +15,12 @@ gitorious restart: stop && restart
 gitorious reload: Sends SIGHUP to all processes, which will cause them to reload config
 [gitorious logrotate: Sends SIGUSR1 to all processes, which will cause them to reopen log files]
 #+END_EXAMPLE
+** Which daemons?
+*** TODO git-daemons
+*** TODO git-proxy
+*** TODO unicorn
+*** TODO searchd
+*** TODO resque-worker
 ** Main scenarios
 *** System startup: start all associated daemons
     - [ ] Start all tasks
