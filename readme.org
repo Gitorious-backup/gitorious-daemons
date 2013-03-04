@@ -15,3 +15,18 @@ gitorious restart: stop && restart
 gitorious reload: Sends SIGHUP to all processes, which will cause them to reload config
 [gitorious logrotate: Sends SIGUSR1 to all processes, which will cause them to reopen log files]
 #+END_EXAMPLE
+** Main scenarios
+*** System startup: start all associated daemons
+    - [ ] Start all tasks
+    - [ ] Ignore running tasks (ie don't restart any tasks)
+*** System shutdown: stop all associated daemons
+    - [ ] Stop all tasks
+    - [ ] Ignore ones that aren't running (ie. don't complain)
+*** Check status
+    - [ ] UP or DOWN
+*** Log rotation
+    - [ ] "Reload" all running tasks
+    - [ ] Ignore ones that aren't running (ie. don't start any tasks)
+*** Restart (after code updates etc)
+    - [ ] Restart all tasks
+    - [ ] Start the ones that aren't running

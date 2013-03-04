@@ -16,12 +16,12 @@ _checkpid() {
 	ps -p $pid >/dev/null 2>&1
 	exitstatus=$?
 	if [ $exitstatus -eq 0 ]; then
-	    /bin/echo "$name is running"
+	    return 0
 	else
-	    /bin/echo "$name has a PID file, but is down"
+	    return 1
 	fi
     else
-	/bin/echo "$name is down"
+	return 1
     fi
 }
 
@@ -29,20 +29,29 @@ status(){
     for path in $(find "$prefix/usr/libexec/$progname" -type f -executable)
     do
 	local name=$(basename $path)
-	_checkpid $name
+	_checkpid $name && /bin/echo "$name is up" || /bin/echo "$name is down"
     done
 }
 
-stop(){
+_signal_all(){
+    local signal=$1
     for app in $(find "$prefix/usr/libexec/$progname" -type f -executable)
     do
 	local name=$(basename $app)
 	local pidfile="$prefix/var/run/$progname/$name.pid"
 	if [ -f $pidfile ]; then
 	    local pid=$(cat $pidfile 2>/dev/null)
-	    kill -QUIT $pid
+	    kill -$signal $pid
 	fi
     done
+}
+
+stop(){
+    _signal_all "QUIT"
+}
+
+reload(){
+    _signal_all "HUP"
 }
 
 restart(){
@@ -63,6 +72,9 @@ case "$1" in
     restart)
 	stop
 	start
+	;;
+    reload)
+	reload
 	;;
     *)
 	/bin/echo "Usage: $0 {start,stop,restart,status}"

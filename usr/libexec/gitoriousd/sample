@@ -26,12 +26,12 @@ def daemonize_app
     STDIN.reopen "/dev/null"
     STDOUT.reopen "/dev/null", "a"
     STDERR.reopen "/dev/null", "a"
-    write_pidfile(Process.pid)
-    $0 = "unicorn-wrapper"
-    yield
   else
     Process.daemon
   end
+  write_pidfile(Process.pid)
+  $0 = "unicorn-wrapper"
+  yield
 end
 
 
@@ -42,11 +42,13 @@ def shutdown!
   exit 0
 end
 
-
 def reload
-  File.open("/tmp/unicorn.log","a") {|f| f.puts "Reloading"}
+  write_to_log_file "Reloading"
 end
 
+def write_to_log_file(message)
+  File.open("/tmp/sample.log","a") {|f| f.puts message}
+end
 
 daemonize_app do
   Signal.trap(:QUIT) do
