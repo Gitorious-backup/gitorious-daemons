@@ -23,7 +23,7 @@ class ResqueDaemon
         Process.kill(:QUIT, @resque_pid)
         pid, status = Process.waitpid2(@resque_pid)
         write_to_log_file "Resque with PID #{@resque_pid} killed, status was #{status.exitstatus}"
-        File.unlink(pidfile_path)
+        remove_pidfile
         exit status.exitstatus
       end
       Signal.trap(:HUP) {

@@ -14,6 +14,10 @@ module Gitoriousd
       File.open(pidfile_path,"w") {|f| f.write(pid.to_s)}
     end
 
+    def remove_pidfile
+      File.unlink pidfile_path
+    end
+
     def daemonize_app
       if RUBY_VERSION < "1.9"
         exit if fork
