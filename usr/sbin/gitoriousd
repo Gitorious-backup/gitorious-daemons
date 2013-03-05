@@ -19,7 +19,7 @@ start(){
     for app in $(find "$prefix/usr/libexec/$progname" -type f -not -name "*.rb" -executable)
     do
 	local name=$(basename $app)
-	_checkpid $name && echo "Not starting $name" || $app
+	_checkpid $name && _status_down "Not starting $name" || (_status_ok "Starting $name" && $app)
     done
 }
 
@@ -64,7 +64,11 @@ _signal_all(){
 	local pidfile="$prefix/var/run/$progname/$name.pid"
 	if [ -f $pidfile ]; then
 	    local pid=$(cat $pidfile 2>/dev/null)
-	    /bin/echo "Sending $signal to $pid for process $name"
+	    if [ "$signal" == "QUIT" ]; then
+		_status_ok "Stopping $name"
+	    else
+		/bin/echo "Sending $signal to $pid for process $name"
+	    fi
 	    kill -$signal $pid 2>/dev/null
 	fi
     done
