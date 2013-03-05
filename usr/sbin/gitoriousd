@@ -44,8 +44,16 @@ status(){
     for path in $(find "$prefix/usr/libexec/$progname" -not -name "*.rb" -type f -executable)
     do
 	local name=$(basename $path)
-	_checkpid $name && /bin/echo "$name is up" || /bin/echo "$name is down"
+	_checkpid $name && _status_ok "$name" || _status_down "$name"
     done
+}
+
+_status_ok() {
+    printf "%-50s \033[1;32m %s \033[0m\n" "$1" [UP]
+}
+
+_status_down() {
+    printf "%-50s \033[1;31m %s \033[0m\n" "$1" [DOWN]
 }
 
 _signal_all(){
@@ -56,6 +64,7 @@ _signal_all(){
 	local pidfile="$prefix/var/run/$progname/$name.pid"
 	if [ -f $pidfile ]; then
 	    local pid=$(cat $pidfile 2>/dev/null)
+	    /bin/echo "Sending $signal to $pid for process $name"
 	    kill -$signal $pid 2>/dev/null
 	fi
     done
@@ -70,8 +79,8 @@ reload(){
 }
 
 restart(){
-    stop
-    start
+    /bin/echo "Restart implemented reliably, using reload instead"
+    reload
 }
 
 case "$1" in
@@ -85,8 +94,7 @@ case "$1" in
 	status
 	;;
     restart)
-	stop
-	start
+	restart
 	;;
     reload)
 	reload
