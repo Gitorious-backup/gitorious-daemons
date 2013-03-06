@@ -14,12 +14,11 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 progname="gitoriousd"
-# Dynamically find prefix
-prefix="/tmp/gitoriousd"
+
 # Read /etc/gitorious.conf, expose env vars
 current_dir=$(dirname $0)
 gitorious_conf=$current_dir/../../etc/gitorious.conf
-
+prefix=$current_dir/../..
 # Look for $PREFIX/gitorious.conf, source if present
 if [ -f $gitorious_conf ]; then
     . $gitorious_conf
