@@ -19,7 +19,7 @@ gitorious reload: Sends SIGHUP to all processes, which will cause them to reload
 *** TODO git-daemons
 *** TODO git-proxy
 *** TODO unicorn
-*** TODO searchd
+*** DONE searchd
 *** DONE resque-worker
 ** Main scenarios
 *** System startup: start all associated daemons
