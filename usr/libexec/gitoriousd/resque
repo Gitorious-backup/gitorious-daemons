@@ -53,6 +53,7 @@ class ResqueDaemon
       Signal.trap(:CHLD) {
         write_to_log_file "Our child just died, exiting."
         Process.wait(@resque_pid)
+        remove_pidfile
         exit 1
       }
       loop {
