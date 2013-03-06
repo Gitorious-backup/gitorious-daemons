@@ -50,6 +50,11 @@ class ResqueDaemon
         @resque_pid = run_resque
         write_to_log_file "Resque respawned, running with pid #{@resque_pid}"
       }
+      Signal.trap(:CHLD) {
+        write_to_log_file "Our child just died, exiting."
+        Process.wait(@resque_pid)
+        exit 1
+      }
       loop {
         sleep 1
       }
