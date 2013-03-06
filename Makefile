@@ -21,7 +21,7 @@ INSTALL_DIRS=`find $(DIRS) -type d 2>/dev/null`
 INSTALL_FILES=`find $(DIRS) -type f 2>/dev/null`
 
 PREFIX?=/
-DOC_DIR=$(PREFIX)/share/doc/$(NAME)
+DOC_DIR=$(PREFIX)/usr/share/doc/$(NAME)
 DOC_FILES=readme.org
 
 RUN_DIR=$(PREFIX)/var/run/$(NAME)
